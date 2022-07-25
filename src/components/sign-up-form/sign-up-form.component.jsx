@@ -1,30 +1,47 @@
 import { useState } from "react";
-import { createAuthUserWithEmailAndPassword } from "../../utils/firebase/firebase.utils";
+import {
+  createAuthUserWithEmailAndPassword,
+  createUserDocumentFromAuth,
+} from "../../utils/firebase/firebase.utils";
 
-const defaultFormField = {
+const defaultFormFields = {
   displayName: "",
   email: "",
   password: "",
   confirmPassword: "",
 };
 
-const handleSubmit = async (event) => {
-  event.preventDefault();
-};
-
 const SignUpForm = () => {
-  const [formFields, setFormField] = useState(defaultFormField);
+  const [formFields, setFormFields] = useState(defaultFormFields);
   const { displayName, email, password, confirmPassword } = formFields;
   console.log(formFields);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    if (password != confirmPassword) {
+      alert("your password do not match");
+      return;
+    }
+    try {
+      const { user } = await createAuthUserWithEmailAndPassword(
+        email,
+        password
+      );
+      await createUserDocumentFromAuth(user, { displayName });
+    } catch (error) {
+      console.log("user creation encountered an error", error);
+    }
+  };
+
   const handleChange = (event) => {
     const { name, value } = event.target;
-    setFormField({ ...setFormField, [name]: value });
+    setFormFields({ ...formFields, [name]: value });
   };
   return (
     <div>
       <h1>Sign Up with your email and password</h1>
-      <form>
-        <label onSubmit={() => {}}>Display Name</label>
+      <form onSubmit={handleSubmit}>
+        <label>Display Name</label>
         <input
           type="text"
           required
